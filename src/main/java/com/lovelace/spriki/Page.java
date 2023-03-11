@@ -8,6 +8,8 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -25,14 +27,17 @@ public class Page {
     private boolean isNew;
     private String content;
     private String html;
+    private String body;
     //  TODO: __html__ ... Not sure of the use so will add later
     private String title;
     //  TODO: Not sure, but seems tags are one string seperated by ',' character
-    private List tags;
+    //private List<String> tags;
+    private String tags;
 
     //  TODO: OrderedDict was used on the original, HashMap will be the stand in until it causes an issue
     private HashMap<String, Object> meta;
 
+    public Page() {}
 
     public Page(Path path, String url) {
         this.path = path;
@@ -75,10 +80,10 @@ public class Page {
 
         Map<String, List> metaData = (Map)data[2];
 
-        this.title = metaData.get("title").get(0).toString();
-        this.tags = metaData.get("tags");
-
-        this.html = (String)data[0];
+        this.setTitle(metaData.get("title").get(0).toString());
+        this.setTags(metaData.get("tags"));
+        this.setBody((String)data[1]);
+        this.setHTML((String)data[0]);
 
         System.out.println("HTML: " + this.html);
 
@@ -89,6 +94,41 @@ public class Page {
     //  TODO: implement
     public void save(boolean update) {
         //  Check that directory from this.path exists, if not make it
+        Path dir = this.path.getFileName();
+        if(!Files.exists(dir)) {
+            try{
+                Files.createDirectories(dir);
+            }catch(java.io.IOException ex){
+                //  TODO: logging
+                System.out.println("Page class, save method: fucked up creating a dir");
+            }
+        }
+
+        //  initialize string that will hold markdown data
+        String saveData = "---\r\n";
+        //  add title info
+        saveData = saveData + "title: " + this.getTitle() + "\r\n";
+        //  add tags
+        saveData = saveData + "tags:\r\n";
+        for (String s:this.getTagsList()) {
+            saveData = saveData + "    - " + s + "\r\n";
+        }
+        saveData = saveData + "---\r\n\r\n";
+        saveData += this.body;
+
+        try{
+            Files.write(this.path, Collections.singleton(saveData));
+        }catch(java.io.IOException ex){
+            System.out.println("\n\n\nSave method fuckup with writing file\n\n");
+        }
+
+        if (update) {
+            this.load();
+            this.render();
+        }
+
+
+
 
         //  open file at this.path, w only, write line by line from this._meta.items()??, append extra
 
@@ -111,11 +151,22 @@ public class Page {
     }
 
     public String getHTML() {
-        System.out.println("This is getHTML");
+        System.out.println("This is getHTML: " +this.html);
         return this.html;
+    }
+    public void setHTML(String value) {
+        this.html = value;
     }
 
     //  TODO: __html__ getter method?
+
+    public String getUrl(){
+        return this.url;
+    }
+
+    public void setUrl(String value) {
+        this.url = value;
+    }
 
     public String getTitle() {
         if (this.title != null) {
@@ -128,15 +179,49 @@ public class Page {
         this.title = value;
     }
 
+    public String getBody(){return this.body;}
+
+    public void setBody(String value){this.body = value;}
+
     //  return tags List, if it is not set return null
-    public List getTags() {
-        return this.tags;
+    public List<String> getTagsList() {
+        String[] tagValues = this.tags.split(",");
+        ArrayList<String> tagsList = new ArrayList<String>(List.of(tagValues));
+        return tagsList;
     }
 
-    //  set tags as String of tags seperated by ',' character
-    /*public void setTags(String[] values) {
-        this.tags = values;
+
+
+    public String getTags(){return this.tags;}
+    /*TODO remove?
+       public String getTags(){
+        String tagString = "";
+        for (String s : this.tags) {
+            tagString = tagString + s + ",";
+        }
+        if (tagString.endsWith(",")){
+            tagString = tagString.substring(0, tagString.length() - 1);
+        }
+        return tagString;
     }*/
+
+    //  set tags as String of tags seperated by ',' character
+    public void setTags(String values) {
+
+        this.tags = values;
+
+    }
+
+    public void setTags(List<String> values){
+        String tagString = "";
+        for (String s : values) {
+            tagString = tagString + s + ",";
+        }
+        if (tagString.endsWith(",")){
+            tagString = tagString.substring(0, tagString.length() - 1);
+        }
+        this.tags = tagString;
+    }
 
     private class PageProcessor {
         /**
@@ -198,7 +283,11 @@ public class Page {
 
         }
 
-        //  split raw is unnecessary because we do not need to seperate the meta data to use it
+        //  split raw will get the body of the markup from the .md file
+        public void splitRaw(){
+            System.out.print(this.input + "\n");
+            this.markdown = (this.input.split("\r\n\r\n", 2))[1];
+        }
 
         //  process meta is unecessary because the meta data is ordered
 
@@ -215,6 +304,7 @@ public class Page {
         //  TODO: determine necessity of seperate process method, we have many less methods in this class than the og
         private Object[] process () {
 
+            this.splitRaw();
             this.processMarkdown();
             //this.postProcess();
 

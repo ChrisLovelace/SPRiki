@@ -1,9 +1,21 @@
 ---
 title: Home Page
 tags:
-    - what
-    - the
-    - fuck
+    - home
 ---
 
-This is the Home page, I guess you do markup ere lol
+## Welcome to the home page of the SPRiki project.
+* I
+* am
+* a 
+* list
+* bro
+
+**bold**
+*italic*
+
+[link](https://www.youtube.com)
+
+
+
+

@@ -75,7 +75,7 @@ public class Wiki {
         if(!Files.exists(dir)){
             try{
                 Files.createDirectories(dir);
-            }catch(java.io.IOException Ex){
+            }catch(java.io.IOException ex){
                 // TODO: add logging
                 System.out.println("Wiki class, move method: fucked up creating a dir");
             }

@@ -23,7 +23,7 @@
             <a class="btn" href="#preview" id="previewbtn">Preview</a>
           </div>
           <div class="pull-right">
-            <a class="btn" href="{{ url_for('wiki.display', url=page.url) }}">Cancel</a>
+            <a class="btn" th:href="@{'/' + ${page.url}}">Cancel</a>
             <button class="btn btn-success" type="submit">Save</button>
           </div>
         </div>

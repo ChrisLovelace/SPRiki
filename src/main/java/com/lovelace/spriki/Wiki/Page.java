@@ -1,4 +1,4 @@
-package com.lovelace.spriki;
+package com.lovelace.spriki.Wiki;
 
 import org.commonmark.Extension;
 import org.commonmark.ext.front.matter.YamlFrontMatterExtension;
@@ -37,7 +37,8 @@ public class Page {
     //  TODO: OrderedDict was used on the original, HashMap will be the stand in until it causes an issue
     private HashMap<String, Object> meta;
 
-    public Page() {}
+    public Page() {
+    }
 
     public Page(Path path, String url) {
         this.path = path;
@@ -78,12 +79,12 @@ public class Page {
         PageProcessor processor = new PageProcessor(this.content);
         Object[] data = processor.process();
 
-        Map<String, List> metaData = (Map)data[2];
+        Map<String, List> metaData = (Map) data[2];
 
         this.setTitle(metaData.get("title").get(0).toString());
         this.setTags(metaData.get("tags"));
-        this.setBody((String)data[1]);
-        this.setHTML((String)data[0]);
+        this.setBody((String) data[1]);
+        this.setHTML((String) data[0]);
 
         System.out.println("HTML: " + this.html);
 
@@ -95,10 +96,10 @@ public class Page {
     public void save(boolean update) {
         //  Check that directory from this.path exists, if not make it
         Path dir = this.path.getFileName();
-        if(!Files.exists(dir)) {
-            try{
+        if (!Files.exists(dir)) {
+            try {
                 Files.createDirectories(dir);
-            }catch(java.io.IOException ex){
+            } catch (java.io.IOException ex) {
                 //  TODO: logging
                 System.out.println("Page class, save method: fucked up creating a dir");
             }
@@ -110,15 +111,15 @@ public class Page {
         saveData = saveData + "title: " + this.getTitle() + "\r\n";
         //  add tags
         saveData = saveData + "tags:\r\n";
-        for (String s:this.getTagsList()) {
+        for (String s : this.getTagsList()) {
             saveData = saveData + "    - " + s + "\r\n";
         }
         saveData = saveData + "---\r\n\r\n";
         saveData += this.body;
 
-        try{
+        try {
             Files.write(this.path, Collections.singleton(saveData));
-        }catch(java.io.IOException ex){
+        } catch (java.io.IOException ex) {
             System.out.println("\n\n\nSave method fuckup with writing file\n\n");
         }
 
@@ -126,8 +127,6 @@ public class Page {
             this.load();
             this.render();
         }
-
-
 
 
         //  open file at this.path, w only, write line by line from this._meta.items()??, append extra
@@ -151,16 +150,17 @@ public class Page {
     }
 
     public String getHTML() {
-        System.out.println("This is getHTML: " +this.html);
+        System.out.println("This is getHTML: " + this.html);
         return this.html;
     }
+
     public void setHTML(String value) {
         this.html = value;
     }
 
     //  TODO: __html__ getter method?
 
-    public String getUrl(){
+    public String getUrl() {
         return this.url;
     }
 
@@ -179,9 +179,13 @@ public class Page {
         this.title = value;
     }
 
-    public String getBody(){return this.body;}
+    public String getBody() {
+        return this.body;
+    }
 
-    public void setBody(String value){this.body = value;}
+    public void setBody(String value) {
+        this.body = value;
+    }
 
     //  return tags List, if it is not set return null
     public List<String> getTagsList() {
@@ -191,8 +195,9 @@ public class Page {
     }
 
 
-
-    public String getTags(){return this.tags;}
+    public String getTags() {
+        return this.tags;
+    }
     /*TODO remove?
        public String getTags(){
         String tagString = "";
@@ -212,12 +217,12 @@ public class Page {
 
     }
 
-    public void setTags(List<String> values){
+    public void setTags(List<String> values) {
         String tagString = "";
         for (String s : values) {
             tagString = tagString + s + ",";
         }
-        if (tagString.endsWith(",")){
+        if (tagString.endsWith(",")) {
             tagString = tagString.substring(0, tagString.length() - 1);
         }
         this.tags = tagString;
@@ -226,7 +231,7 @@ public class Page {
     private class PageProcessor {
         /**
          * The processor handles the processing of file content into metadata and markdown, as well as takes care
-         *  of the rendering. It is based on the same class from the Riki project
+         * of the rendering. It is based on the same class from the Riki project
          */
         // make markdown object? for processing
         //input is the text passed into the constructor
@@ -250,7 +255,7 @@ public class Page {
          */
 
         //  TODO: Riki also had a default parameter url_formatter set to none...
-        private String wikiLinks (String text) {
+        private String wikiLinks(String text) {
             return "";
         }
 
@@ -273,7 +278,7 @@ public class Page {
         //  void preProcess(){}
 
         //convert to html
-        private void processMarkdown(){
+        private void processMarkdown() {
             //  use YamlFrontMatterVisitor to parse metadata
             Node document = this.parser.parse(this.input);
             YamlFrontMatterVisitor visitor = new YamlFrontMatterVisitor();
@@ -284,7 +289,7 @@ public class Page {
         }
 
         //  split raw will get the body of the markup from the .md file
-        public void splitRaw(){
+        public void splitRaw() {
             System.out.print(this.input + "\n");
             this.markdown = (this.input.split("\r\n\r\n", 2))[1];
         }
@@ -302,7 +307,7 @@ public class Page {
         //      so maybe return with array...
 
         //  TODO: determine necessity of seperate process method, we have many less methods in this class than the og
-        private Object[] process () {
+        private Object[] process() {
 
             this.splitRaw();
             this.processMarkdown();

@@ -228,6 +228,10 @@ public class Page {
         this.tags = tagString;
     }
 
+    public String toString(){
+        return this.getUrl();
+    }
+
     private class PageProcessor {
         /**
          * The processor handles the processing of file content into metadata and markdown, as well as takes care

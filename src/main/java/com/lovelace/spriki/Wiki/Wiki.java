@@ -4,9 +4,14 @@ import jakarta.validation.constraints.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This will handle processing of pages
@@ -42,9 +47,9 @@ public class Wiki {
     //  This method is used for URL validation, ensures that the given URL is valid before creating any files.
     //  Uses regex to ensure that it can be used in the url and as a filename.
     public boolean isValid(String url) {
-        System.out.print("\nThis is the url: " + url + "\n It was ");
+        logger.info("\nThis is the url: " + url + "\n It was ");
         boolean matchFlag = url.matches(URL_PATTERN);
-        System.out.println(matchFlag);
+        logger.info(String.valueOf(matchFlag));
         return matchFlag;
     }
 
@@ -87,9 +92,7 @@ public class Wiki {
         //find longest common prefix
         Path common = root.relativize(target.normalize());
         if (common.getNameCount() < root.getNameCount()) {
-            // TODO: add logging
             //  og riases a runtime error
-            System.out.println("Wiki class, move method: nameCount");
             return;
         }
         //  create a folder if it does not exist
@@ -98,15 +101,13 @@ public class Wiki {
             try {
                 Files.createDirectories(dir);
             } catch (java.io.IOException ex) {
-                // TODO: add logging
-                System.out.println("Wiki class, move method: fucked up creating a dir");
+                logger.error("There was an issue when creating a directory");
             }
         }
         try {
             Files.move(source, target);
         } catch (java.io.IOException Ex) {
-            // TODO: add logging
-            System.out.println("Wiki class, move method: fucked up moving file");
+            logger.error("There was an issue when moving a file");
         }
 
     }
@@ -116,10 +117,38 @@ public class Wiki {
         try {
             Files.deleteIfExists(path);
         } catch (java.io.IOException Ex) {
-            // TODO: add logging, check for working
-            System.out.println("Wiki class, delete method: fucked up deleting a file");
+            // TODO: Check for working
+            logger.error("There was an issue when deleting a file");
         }
         return true;
+    }
+
+    public Page[] index() throws IOException {
+        List<Page> pages = new ArrayList<Page>();
+        List<Path> pagesList;
+
+        Path absRoot = root.toAbsolutePath();
+
+        try (Stream<Path> walk = Files.walk(absRoot)) {
+            pagesList = walk.filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
+
+        }
+
+        String absRootString = absRoot.toString();
+
+        for (Path filePath : pagesList) {
+            String filePathString = filePath.toString();
+            String url = filePathString.substring(31);
+            url = url.replace(".md", "");
+            Page p = new Page(filePath, url);
+            pages.add(p);
+        }
+
+        Page[] pageArray = new Page[pages.size()];
+        pageArray = pages.toArray(pageArray);
+
+        return pageArray;
     }
 
 }

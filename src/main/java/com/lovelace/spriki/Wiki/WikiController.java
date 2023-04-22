@@ -36,7 +36,18 @@ public class WikiController {
     }
 
     @GetMapping("/index")
-    public String index() {
+    public String index(Model model) {
+
+        Page[] pages = {};
+        try {
+            pages = currentWiki.index();
+        }catch(Exception e ){
+            logger.error("THERE WAS AN IO ERROR");
+        }
+
+        model.addAttribute("pages", pages);
+
+
         return "index";
     }
 

@@ -3,33 +3,32 @@
 <message><h1>Page Index</h1></message>
 
 <section>
-    {% if pages %}
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>URL</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for page in pages %}
-        <tr>
-            <td><a href="{{ url_for('wiki.display', url=page.url) }}">{{ page.title }}</a></td>
-            <td><a href="{{ url_for('wiki.display', url=page.url) }}">{{ page.url }}</a></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>There are no pages yet.</p>
-    {% endif %}
+    <pages th:if="${pages != null}" >
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>URL</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="page : ${pages}" >
+                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.title}" ></a></td>
+                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.url}" ></a></td>
+            </tr>
+            </tbody>
+        </table>
+    </pages>
+
+    <p th:unless="${pages != null}">There are no pages yet.</p>
+
 </section>
 
 <sidebar>
     <ul class="nav nav-tabs nav-stacked">
-        <li><a href="{{ url_for('wiki.create') }}">New Page</a></li>
-        <li><a href="{{ url_for('wiki.tags') }}">Tag List</a></li>
-        <li><a href="{{ url_for('wiki.search') }}">Search</a></li>
+        <li><a href="/create">New Page</a></li>
+        <li><a href="/tags">Tag List</a></li>
+        <li><a href="/search">Search</a></li>
     </ul>
 </sidebar>
 </html>

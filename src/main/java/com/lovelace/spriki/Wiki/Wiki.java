@@ -1,6 +1,5 @@
 package com.lovelace.spriki.Wiki;
 
-import jakarta.validation.constraints.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,8 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -149,6 +147,68 @@ public class Wiki {
         pageArray = pages.toArray(pageArray);
 
         return pageArray;
+    }
+
+    public Page[] index_by_tag(String tag){
+
+        Page[] pages = {};
+        try{
+            pages = this.index();
+        }catch (IOException ex){
+            logger.error("Exception in index_by_tag: " + ex.toString());
+        }
+
+        List<Page> tagged = new ArrayList<>();
+
+        for (Page page : pages){
+            List<String> tagsList = page.getTagsList();
+            if(tagsList.contains(tag)){
+                tagged.add(page);
+            }
+        }
+
+        Page[] taggedArray = new Page[tagged.size()];
+        taggedArray = tagged.toArray(taggedArray);
+
+        return taggedArray;
+    }
+
+    public TreeMap<String, List<Page>> getTags() {
+        Page[] pages = {};
+        try {
+            pages = this.index();
+        } catch (IOException ex) {
+            logger.error("Exception in getTags: " + ex.toString());
+        }
+
+
+        // The original used a python dictionary for this section
+        // They would use the .get function to check if the tag is already in the dictionary, and append pages
+        //      to the list in the key value pair to make a list of all pages that have the tag.
+        //  I used a TreeMap to ensure the results are displayed in alphabetical order.
+        TreeMap<String, List<Page>> tags = new TreeMap();
+
+
+        for (Page page : pages) {
+            String[] pageTags = page.getTags().split(",");
+            for (String tag : pageTags) {
+                tag = tag.strip();
+                if (tag.equals("")) {
+                    continue;
+                } else if (tags.containsKey(tag)) {
+                    tags.get(tag).add(page);
+                } else {
+                    List<Page> p = new ArrayList<>();
+                    p.add(page);
+                    tags.put(tag, p);
+                }
+
+            }
+        }
+        logger.info("Tags are:\n" + tags.toString());
+
+
+        return tags;
     }
 
 }

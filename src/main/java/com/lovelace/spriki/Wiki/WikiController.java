@@ -11,6 +11,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+
 @Controller
 public class WikiController {
 
@@ -156,6 +158,19 @@ public class WikiController {
 
         return "redirect:/edit/" + page.getUrl();
 
+    }
+
+    @GetMapping("/tags")
+    public String tags(Model model){
+
+        //Page[] tagged = currentWiki.index_by_tag();
+        // This was for a diff page, I fucked up
+
+
+        model.addAttribute("tags", currentWiki.getTags());
+
+
+        return "tags.html";
     }
 
 }

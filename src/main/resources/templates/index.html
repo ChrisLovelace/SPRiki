@@ -3,7 +3,7 @@
 <message><h1>Page Index</h1></message>
 
 <section>
-    <pages th:if="${pages != null}" >
+    <pages th:if="${pages != null}">
         <table class="table">
             <thead>
             <tr>
@@ -12,9 +12,9 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="page : ${pages}" >
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.title}" ></a></td>
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.url}" ></a></td>
+            <tr th:each="page : ${pages}">
+                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.title}"></a></td>
+                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.url}"></a></td>
             </tr>
             </tbody>
         </table>

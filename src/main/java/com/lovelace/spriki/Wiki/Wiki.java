@@ -20,7 +20,7 @@ public class Wiki {
     Logger logger = LoggerFactory.getLogger(Wiki.class);
 
     //root will be the directory path, used to find files and such
-    private Path root;
+    private final Path root;
     //@Pattern(regexp = "^[a-zA-Z0-9]+([\\-\\._][a-zA-Z0-9]+)*([\\/]?[a-zA-Z0-9]+[\\-\\._\\+~#%&=:@]?)*$")
     private static final String URL_PATTERN = "^[a-zA-Z0-9]+([\\-\\._][a-zA-Z0-9]+)*([\\/]?[a-zA-Z0-9]+[\\-\\._\\+~#%&=:@]?)*$";
     //public boolean
@@ -84,18 +84,38 @@ public class Wiki {
 
     //  TODO: make sure the .md part works with this method
     public void move(String url, String newUrl) {
-        Path source = Paths.get(this.root + url + ".md");
-        Path target = Paths.get(this.root + newUrl + ".md");
+        Path source = Paths.get(this.root + "\\" + url + ".md");
+        Path target = Paths.get(this.root + "\\" + newUrl + ".md");
         Path root = this.root.normalize();
+
+        logger.info("Source Path: " + source);
+        logger.info("Target Path: " + target);
+        logger.info("Root Path: " + root);
+        logger.info("Normalized Target: " + target.normalize());
+
+
         //find longest common prefix
-        Path common = root.relativize(target.normalize());
+        Path common = root.resolve(target.normalize());
+
+        logger.info("common path: " + common);
+
         if (common.getNameCount() < root.getNameCount()) {
-            //  og riases a runtime error
+            //  og raises a runtime error
+
+
+            logger.error("Runtime error when finding common prefix");
+
+            logger.info("common name count: " + common.getNameCount());
+            logger.info("root name count: " + root.getNameCount());
             return;
         }
         //  create a folder if it does not exist
         Path dir = target.getFileName();
+        logger.info("Dir Path = " + dir.toString());
+
+
         if (!Files.exists(dir)) {
+            logger.info("file does not exist, creating");
             try {
                 Files.createDirectories(dir);
             } catch (java.io.IOException ex) {
@@ -104,6 +124,7 @@ public class Wiki {
         }
         try {
             Files.move(source, target);
+            logger.info("Attempting to move source file to target");
         } catch (java.io.IOException Ex) {
             logger.error("There was an issue when moving a file");
         }
@@ -149,20 +170,20 @@ public class Wiki {
         return pageArray;
     }
 
-    public Page[] index_by_tag(String tag){
+    public Page[] index_by_tag(String tag) {
 
         Page[] pages = {};
-        try{
+        try {
             pages = this.index();
-        }catch (IOException ex){
-            logger.error("Exception in index_by_tag: " + ex.toString());
+        } catch (IOException ex) {
+            logger.error("Exception in index_by_tag: " + ex);
         }
 
         List<Page> tagged = new ArrayList<>();
 
-        for (Page page : pages){
+        for (Page page : pages) {
             List<String> tagsList = page.getTagsList();
-            if(tagsList.contains(tag)){
+            if (tagsList.contains(tag)) {
                 tagged.add(page);
             }
         }
@@ -178,7 +199,7 @@ public class Wiki {
         try {
             pages = this.index();
         } catch (IOException ex) {
-            logger.error("Exception in getTags: " + ex.toString());
+            logger.error("Exception in getTags: " + ex);
         }
 
 
@@ -205,7 +226,7 @@ public class Wiki {
 
             }
         }
-        logger.info("Tags are:\n" + tags.toString());
+        logger.info("Tags are:\n" + tags);
 
 
         return tags;

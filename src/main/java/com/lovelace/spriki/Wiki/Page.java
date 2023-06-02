@@ -228,7 +228,7 @@ public class Page {
         this.tags = tagString;
     }
 
-    public String toString(){
+    public String toString() {
         return this.getUrl();
     }
 
@@ -239,7 +239,7 @@ public class Page {
          */
         // make markdown object? for processing
         //input is the text passed into the constructor
-        private String input;
+        private final String input;
         private String markdown;
         private String meta_raw;
         private String pre;
@@ -247,8 +247,8 @@ public class Page {
         private String finalHTML;
         private Map meta;
 
-        private Parser parser;
-        private HtmlRenderer renderer;
+        private final Parser parser;
+        private final HtmlRenderer renderer;
 
         /**
          * The original project uses lists of functions for pre- and post-processing.

@@ -2,18 +2,21 @@
 <html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
 <pagetitle><h1 th:utext="${page.title}">Home</h1></pagetitle>
 <section>
-<div id="confirmDelete" class="modal hide fade" aria-hidden="true">
-    <div class="modal-header">
-        <h3>Are you sure?</h3>
+    <div id="confirmDelete" class="modal hide fade" aria-hidden="true">
+        <div class="modal-header">
+            <h3>Are you sure?</h3>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete
+                <txt th:text="${page.title}"></txt>
+                ? This cannot be undone.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">No</a>
+            <a href="{{ url_for('wiki.delete', url=page.url) }}" class="btn btn-danger">Yes, delete.</a>
+        </div>
     </div>
-    <div class="modal-body">
-        <p>Are you sure you want to delete <txt th:text="${page.title}"></txt>? This cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">No</a>
-        <a href="{{ url_for('wiki.delete', url=page.url) }}" class="btn btn-danger">Yes, delete.</a>
-    </div>
-</div>
     <div th:utext="${page.HTML}"></div>
 </section>
 
@@ -21,19 +24,19 @@
     <tags th:if="${page.tags != null}">
         <h3>Tags</h3>
         <ul>
-            <li  th:each="tag : ${page.tagsList}" th:text="${tag}"></li>
+            <li th:each="tag : ${page.tagsList}"><a th:href="@{'/tag/' + ${tag}}" th:text="${tag}"> </a></li>
         </ul>
     </tags>
-<h3>Actions</h3>
-<ul class="nav nav-tabs nav-stacked">
-    <li><a th:href="@{'/edit/' + ${page.url}}">Edit</a></li>
-    <li><a th:href="@{'/move/' + ${page.url}}">Move</a></li>
-    <li><a href="{{ url_for('wiki.downloadPDF', url=page.url) }}">Download as PDF</a></li>
-    <li><a href="{{ url_for('wiki.downloadTXT', url=page.url) }}">Download as TXT</a></li>
-    <li><a href="#confirmDelete" data-toggle="modal" class="text-error">Delete</a></li>
-</ul>
-<h4>Downloads: {{ downNum }}</h4>
-<h4>Page visits: {{ visits }}</h4>
+    <h3>Actions</h3>
+    <ul class="nav nav-tabs nav-stacked">
+        <li><a th:href="@{'/edit/' + ${page.url}}">Edit</a></li>
+        <li><a th:href="@{'/move/' + ${page.url}}">Move</a></li>
+        <li><a href="{{ url_for('wiki.downloadPDF', url=page.url) }}">Download as PDF</a></li>
+        <li><a href="{{ url_for('wiki.downloadTXT', url=page.url) }}">Download as TXT</a></li>
+        <li><a href="#confirmDelete" data-toggle="modal" class="text-error">Delete</a></li>
+    </ul>
+    <h4>Downloads: {{ downNum }}</h4>
+    <h4>Page visits: {{ visits }}</h4>
 
 </sidebar>
 </html>

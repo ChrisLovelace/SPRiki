@@ -11,7 +11,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.TreeMap;
 
 @Controller
 public class WikiController {
@@ -43,7 +46,7 @@ public class WikiController {
         Page[] pages = {};
         try {
             pages = currentWiki.index();
-        }catch(Exception e ){
+        } catch (Exception e) {
             logger.error("THERE WAS AN IO ERROR");
         }
 
@@ -120,12 +123,7 @@ public class WikiController {
     public String createPage(Model model) {
         logger.info("The createPage GetMapping was requested.");
 
-        //page.setUrl("url");
         model.addAttribute("page", new Page());
-
-        //  This is where validation comes in, need a custom one to validate url isnt taken.
-
-        //  post mapping will need to create a new page object and then save it.
 
         return "create";
     }
@@ -138,8 +136,6 @@ public class WikiController {
         String url = page.getUrl();
 
         //  The isValid method checks for validity of the url as a part of the url and as a filename
-        //    I did the existence check first originally and it took me an embarrassingly long time to realize
-        //    the invalid filename was causing errors
 
         boolean validFlag = currentWiki.isValid(url);
         if (!validFlag) {
@@ -160,8 +156,10 @@ public class WikiController {
 
     }
 
+    //  This mapping will return a page which shows all the tags from the wiki pages in
+    //      alphabetical order, the number of pages each shows up in, and link the tag page
     @GetMapping("/tags")
-    public String tags(Model model){
+    public String tags(Model model) {
 
         //Page[] tagged = currentWiki.index_by_tag();
         // This was for a diff page, I fucked up
@@ -171,6 +169,65 @@ public class WikiController {
 
 
         return "tags.html";
+    }
+
+    //  The tag page takes the tag in the url and links all pages that include that tag
+    @GetMapping("/tag/{tag}")
+    public String tag(@PathVariable(value = "tag") String tag, Model model) {
+
+        TreeMap<String, List<Page>> tags = currentWiki.getTags();
+
+        // This list will present in alphabetical order of url, want to order by title...
+        List pageList = tags.get(tag);
+
+
+        logger.info("This is the list of pages for the tag: " + tag + "\n" + pageList.toString());
+
+        model.addAttribute("tag", tag);
+        model.addAttribute("pageList", pageList);
+
+        return "tag.html";
+    }
+
+    @GetMapping("/move/{url}")
+    public String move(@PathVariable(value = "url") String url, Model model) {
+        logger.info("The move GetMapping was requested.");
+
+        Page page = currentWiki.get_or_404(url);
+
+        model.addAttribute("page", page);
+        //form.validate on submit?
+
+
+        return "move.html";
+    }
+
+    @PostMapping("/move/{url}")
+    public String moveSubmit(@PathVariable(value = "url") String url, @ModelAttribute("page") Page page, BindingResult bindingResult) {
+
+        logger.info("The move PostMapping was requested.");
+
+        //  Here we need to get the new URL and save it into a variable
+
+        String newUrl = page.getUrl();
+
+        boolean validFlag = currentWiki.isValid(newUrl);
+        if (!validFlag) {
+            bindingResult.rejectValue("url", "error.url", "New URL is invalid");
+            logger.warn("An invalid url was given to the Move page");
+        } else if (currentWiki.exists(newUrl)) {
+            bindingResult.rejectValue("url", "error.url", "URL is already in use");
+            logger.warn("An existing url was given to the Move page");
+        }
+
+        if (bindingResult.hasErrors()) {
+            return "move";
+        }
+
+        currentWiki.move(url, page.getUrl());
+
+        return "redirect:/" + newUrl;
+
     }
 
 }

@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
 
-<pagetitle><h1>Index by Tags</h1></pagetitle>pagetitle>
+<pagetitle><h1>Index by Tags</h1></pagetitle>
 
 <section>
-<tags th:if="${tags != null}">
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Tag</th>
-            <th>Number of Articles</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="tag : ${tags}">
-            <td><a th:href="@{'/tag/' + ${tag.key}}" th:text="${tag.key}" ></a></td>
+    <tags th:if="${tags != null}">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Tag</th>
+                <th>Number of Articles</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tag : ${tags}">
+                <td><a th:href="@{'/tag/' + ${tag.key}}" th:text="${tag.key}"></a></td>
 
-            <td><p th:text="${#lists.size(tag.value)}" ></p></td>
-        </tr>
-        </tbody>
-    </table>
-</tags>
-<p>There are no tags in use so far.</p>
-{% endif %}
+                <td><p th:text="${#lists.size(tag.value)}"></p></td>
+            </tr>
+            </tbody>
+        </table>
+    </tags>
+    <p th:unless="${tags != null}">There are no tags in use so far.</p>
 </section>
 <sidebar></sidebar>

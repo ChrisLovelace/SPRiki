@@ -5,20 +5,19 @@
 
 <pagetitle><h1>Create a new page</h1></pagetitle>
 <section>
-<form method="post" th:object="${page}" class="form-inline">
-    <input type="text" id="url" name="url" th:field="*{url}" placeholder="URL of the new page" autocomplete="off" >
-    <span th:if="${#fields.hasErrors('url')}" th:errors="*{url}"
-          class="alert alert-error"></span>
+    <form method="post" th:object="${page}" class="form-inline">
+        <input type="text" id="url" name="url" th:field="*{url}" placeholder="URL of the new page" autocomplete="off">
+        <span th:if="${#fields.hasErrors('url')}" th:errors="*{url}"
+              class="alert alert-error"></span>
 
-    <input type="submit" class="btn btn-success" value="Create">
-</form>
+        <input type="submit" class="btn btn-success" value="Create">
+    </form>
 
 </section>
 
 <sidebar>
-<p class="alert alert-success">Thank you for creating new content!</p>
+    <p class="alert alert-success">Thank you for creating new content!</p>
 </sidebar>
-
 
 
 </html>

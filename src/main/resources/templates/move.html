@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
+<pagetitle><h1>Move a page</h1></pagetitle>
+<section>
+    <form method="POST" th:object="${page}" class="form-inline">
+        <input type="text" id="url" name="url" th:field="*{url}" th:placeholder="${url}"
+               placeholder="New URL of the page" autocomplete="off">
+        <span th:if="${#fields.hasErrors('url')}" th:errors="*{url}"
+              class="alert alert-error"></span>
+        <input type="submit" class="btn btn-success" value="Move">
+    </form>
+</section>
+
+<sidebar>
+    <p class="alert alert-success">Be careful, the old url will be invalid immediately!</p>
+
+</sidebar>
+</html>

@@ -21,7 +21,7 @@ import java.util.*;
  * It is created by a Wiki object when a specific page is requested
  * Opens a specified .md file and uses a processor object to process into usable data
  */
-public class Page {
+public class Page implements Comparable<Page> {
     private Path path;
     private String url;
     private boolean isNew;
@@ -230,6 +230,11 @@ public class Page {
 
     public String toString() {
         return this.getUrl();
+    }
+
+    @Override
+    public int compareTo(Page a) {
+        return this.getTitle().compareToIgnoreCase(a.getTitle());
     }
 
     private class PageProcessor {

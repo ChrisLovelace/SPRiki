@@ -230,4 +230,31 @@ public class WikiController {
 
     }
 
+    @GetMapping("/search")
+    public String search(Model model){
+
+        String term = "null";
+
+        // This is a simple object encapsulating a String object so that I can populate it with a form.
+        formView search = new formView();
+
+        model.addAttribute("search", search);
+
+
+        return "search";
+    }
+
+    @PostMapping("/search")
+    public String searchSubmit(@ModelAttribute("search") formView search, BindingResult bindingResult, Model model){
+
+        Page[] pages = currentWiki.search(search.getText(), search.isFlag());
+
+        model.addAttribute("search", search);
+        model.addAttribute("results", pages);
+
+        return "search";
+
+
+    }
+
 }

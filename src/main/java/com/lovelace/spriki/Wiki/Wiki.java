@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -164,6 +166,8 @@ public class Wiki {
             pages.add(p);
         }
 
+        Collections.sort(pages);
+
         Page[] pageArray = new Page[pages.size()];
         pageArray = pages.toArray(pageArray);
 
@@ -228,8 +232,42 @@ public class Wiki {
         }
         logger.info("Tags are:\n" + tags);
 
-
         return tags;
+    }
+
+    public Page[] search(String term, boolean ignoreCase) {
+
+        Page[] pages = new Page[0];
+        try {
+            pages = this.index();
+        } catch (IOException ex) {
+            logger.error("Unhandled IOException in wiki.search()");
+            return null;
+        }
+
+        List<Page> matches = new ArrayList<>();
+        //  need to go through indexed pages and match regex with provided expression...
+
+
+        Pattern pattern = ignoreCase ? Pattern.compile(term, Pattern.CASE_INSENSITIVE) : Pattern.compile(term);
+
+        for (Page page : pages) {
+            String content = page.getTitle() + "|" + page.getTags() + "|" + page.getBody();
+            Matcher matcher = pattern.matcher(content);
+            if(matcher.find()){
+                matches.add(page);
+            }
+        }
+
+        // Creating an array of pages from the ArrayList
+
+        Collections.sort(matches);
+
+        Page[] pageArray = new Page[matches.size()];
+        pageArray = matches.toArray(pageArray);
+
+        return pageArray;
+
     }
 
 }

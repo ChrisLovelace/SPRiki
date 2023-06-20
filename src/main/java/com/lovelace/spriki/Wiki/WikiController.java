@@ -47,7 +47,7 @@ public class WikiController {
             .build();
 
     Logger logger = LoggerFactory.getLogger(WikiController.class);
-    Wiki currentWiki = new Wiki("E:\\Project\\Spring Wiki\\content");
+    Wiki currentWiki = new Wiki("content");
 
 
     @GetMapping("/")

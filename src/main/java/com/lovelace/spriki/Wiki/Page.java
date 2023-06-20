@@ -243,7 +243,6 @@ public class Page implements Comparable<Page> {
 
         //  split raw will get the body of the markup from the .md file
         public void splitRaw() {
-            System.out.print(this.input + "\n");
             this.markdown = (this.input.split("\r\n\r\n", 2))[1];
         }
 

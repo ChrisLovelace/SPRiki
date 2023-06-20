@@ -91,20 +91,13 @@ public class Wiki {
         Path target = Paths.get(this.root + "\\" + newUrl + ".md");
         Path root = this.root.normalize();
 
-        logger.info("Source Path: " + source);
-        logger.info("Target Path: " + target);
-        logger.info("Root Path: " + root);
-        logger.info("Normalized Target: " + target.normalize());
-
 
         //find longest common prefix
         Path common = root.resolve(target.normalize());
 
-        logger.info("common path: " + common);
 
         if (common.getNameCount() < root.getNameCount()) {
             //  og raises a runtime error
-
 
             logger.error("Runtime error when finding common prefix");
 

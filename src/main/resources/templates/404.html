@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{},~{})}" xmlns:th="http://www.thymeleaf.org">
+<pagetitle><h1>
+    404: Wiki page not found!
+</h1></pagetitle>
+
+<section>
+    <p>You did not create any content for this page yet.</p>
+    <p><a th:href="@{/create}" class="btn btn-success">Create a new page</a>
+    </p>
+</section>

@@ -1,44 +1,66 @@
 package com.lovelace.spriki.Wiki;
 
+import jakarta.validation.Valid;
+import org.commonmark.Extension;
+import org.commonmark.ext.front.matter.YamlFrontMatterExtension;
+import org.commonmark.ext.front.matter.YamlFrontMatterVisitor;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
 @Controller
+
 public class WikiController {
+
+    /*
+     * These first 2 objects are used to process markdown for the preview function.
+     *
+     * Unlike the original project, my class for processing pages cannot be used from the controller class.
+     * Fortunately the libraries I use are simpler and the basic processing can be done on the fly with these few
+     * objects, though it is a bit redundant.
+     */
+
+    List<Extension> extensions = Arrays.asList(YamlFrontMatterExtension.create(), TablesExtension.create());
+    Parser parser = Parser.builder()
+            .extensions(extensions)
+            .build();
+    HtmlRenderer renderer = HtmlRenderer.builder()
+            .extensions(extensions)
+            .build();
 
     Logger logger = LoggerFactory.getLogger(WikiController.class);
     Wiki currentWiki = new Wiki("E:\\Project\\Spring Wiki\\content");
 
+
     @GetMapping("/")
     public String home(Model model) {
-
-        logger.trace("A TRACE Message");
-        logger.debug("A DEBUG Message");
-        logger.info("An INFO Message");
-        logger.warn("A WARN Message");
-        logger.error("An ERROR Message");
-
-        logger.info("This is the '/' mapping");
 
         Page page = currentWiki.get("home");
         if (page != null) {
             return display("home", model);
         }
+        logger.info("No home page was found.");
         return "home";
     }
+
 
     @GetMapping("/index")
     public String index(Model model) {
@@ -47,27 +69,21 @@ public class WikiController {
         try {
             pages = currentWiki.index();
         } catch (Exception e) {
-            logger.error("THERE WAS AN IO ERROR");
+            logger.error("There was an error loading the index page.");
+            return "error";
         }
-
         model.addAttribute("pages", pages);
-
 
         return "index";
     }
 
-    @GetMapping("/favicon.ico")
-    public ResponseEntity<Void> favicon() {
-        logger.warn("favicon.ico was requested.");
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @GetMapping("/{url}")
+    @GetMapping("/page/{url}")
     public String display(@PathVariable(value = "url") String url, Model model) {
         logger.info("The url '" + url + "' was requested.");
         Page page = currentWiki.get_or_404(url);
         if (page == null) {
-            logger.warn("A 404 was triggered");
+            logger.warn("404: page not found");
+            return "404";
         }
 
         model.addAttribute("page", page);
@@ -75,9 +91,11 @@ public class WikiController {
         return "page";
     }
 
+
     @GetMapping("/edit/{url}")
-    public String edit(@PathVariable(value = "url") String url, Model model, RedirectAttributes redirAttrs) {
-        logger.info("The url '" + url + "' was passed to the edit page.");
+    public String edit(@PathVariable(value = "url") String url, Model model) {
+
+        logger.info("The page with url " + url + " is being edited.");
 
         Page page = currentWiki.get(url);
 
@@ -86,11 +104,32 @@ public class WikiController {
             page = currentWiki.getBare(url);
         }
 
-        //redirAttrs.addFlashAttribute("message", "THIS IS A TEST MESSAGE");
-
         model.addAttribute("page", page);
 
         return "editor";
+    }
+
+    @PostMapping("/preview")
+    public ResponseEntity<?> preview(@Valid @RequestBody String data) {
+
+        logger.info("A preview request was made");
+
+        String newData = "";
+
+        try {
+            newData = URLDecoder.decode(data, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException ex) {
+            logger.warn("There was an issue with decoding!");
+            return (ResponseEntity<?>) ResponseEntity.status(500);
+        }
+
+        Node document = parser.parse(newData.substring(5));
+        YamlFrontMatterVisitor visitor = new YamlFrontMatterVisitor();
+        document.accept(visitor);
+
+        String html = renderer.render(document);
+
+        return ResponseEntity.ok(html);
     }
 
     @PostMapping("/savePage")
@@ -116,12 +155,11 @@ public class WikiController {
 
         model.addAttribute("page", newPage);
 
-        return "page";
+        return "redirect:/page/" + page.getUrl();
     }
 
     @GetMapping("/create")
     public String createPage(Model model) {
-        logger.info("The createPage GetMapping was requested.");
 
         model.addAttribute("page", new Page());
 
@@ -131,7 +169,7 @@ public class WikiController {
     @PostMapping("/create")
     public String createPageSubmit(@ModelAttribute("page") Page page, BindingResult bindingResult) {
 
-        logger.info("The createPage PostMapping was requested.");
+        logger.info("A page is being created.");
 
         String url = page.getUrl();
 
@@ -146,8 +184,6 @@ public class WikiController {
             logger.warn("An existing url was given to the Create page");
         }
 
-        //urlValidator.validate(page.getUrl(), bindingResult);
-
         if (bindingResult.hasErrors()) {
             return "create";
         }
@@ -161,14 +197,9 @@ public class WikiController {
     @GetMapping("/tags")
     public String tags(Model model) {
 
-        //Page[] tagged = currentWiki.index_by_tag();
-        // This was for a diff page, I fucked up
-
-
         model.addAttribute("tags", currentWiki.getTags());
 
-
-        return "tags.html";
+        return "tags";
     }
 
     //  The tag page takes the tag in the url and links all pages that include that tag
@@ -177,38 +208,34 @@ public class WikiController {
 
         TreeMap<String, List<Page>> tags = currentWiki.getTags();
 
-        // This list will present in alphabetical order of url, want to order by title...
         List pageList = tags.get(tag);
-
-
-        logger.info("This is the list of pages for the tag: " + tag + "\n" + pageList.toString());
 
         model.addAttribute("tag", tag);
         model.addAttribute("pageList", pageList);
 
-        return "tag.html";
+        return "tag";
     }
 
+
+    //  Future consideration:
+    //  Maybe use a formView object to pass the url rather than Path variables
     @GetMapping("/move/{url}")
     public String move(@PathVariable(value = "url") String url, Model model) {
-        logger.info("The move GetMapping was requested.");
+        logger.info("The move page was requested for url " + url + ".");
 
         Page page = currentWiki.get_or_404(url);
 
         model.addAttribute("page", page);
-        //form.validate on submit?
 
-
-        return "move.html";
+        return "move";
     }
 
     @PostMapping("/move/{url}")
     public String moveSubmit(@PathVariable(value = "url") String url, @ModelAttribute("page") Page page, BindingResult bindingResult) {
 
-        logger.info("The move PostMapping was requested.");
+
 
         //  Here we need to get the new URL and save it into a variable
-
         String newUrl = page.getUrl();
 
         boolean validFlag = currentWiki.isValid(newUrl);
@@ -225,27 +252,25 @@ public class WikiController {
         }
 
         currentWiki.move(url, page.getUrl());
+        logger.info("New url " + url + " was given to the page.");
 
-        return "redirect:/" + newUrl;
+        return "redirect:/page/" + newUrl;
 
     }
 
     @GetMapping("/search")
-    public String search(Model model){
-
-        String term = "null";
+    public String search(Model model) {
 
         // This is a simple object encapsulating a String object so that I can populate it with a form.
         formView search = new formView();
 
         model.addAttribute("search", search);
 
-
         return "search";
     }
 
     @PostMapping("/search")
-    public String searchSubmit(@ModelAttribute("search") formView search, BindingResult bindingResult, Model model){
+    public String searchSubmit(@ModelAttribute("search") formView search, Model model) {
 
         Page[] pages = currentWiki.search(search.getText(), search.isFlag());
 
@@ -253,8 +278,26 @@ public class WikiController {
         model.addAttribute("results", pages);
 
         return "search";
-
-
     }
+
+    // This will delete the current page
+    @GetMapping("/delete/{url}")
+    public String delete(@PathVariable(value = "url") String url, Model model) {
+
+
+        Page page = currentWiki.get_or_404(url);
+        if (!currentWiki.delete(url)){
+            return "error";
+        }
+
+        logger.info("Page " + url + " was deleted");
+
+        // flash message to page
+        String[] message = {"success", "Page " + page.getTitle() + " was deleted."};
+        model.addAttribute("message", message);
+
+        return "redirect:/page/home";
+    }
+
 
 }

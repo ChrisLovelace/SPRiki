@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{base :: layout (~{::message}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{base :: layout (~{::message}, ~{::section},~{::sidebar}, ~{})}" xmlns:th="http://www.thymeleaf.org">
 <message><h1>Page Index</h1></message>
 
 <section>
@@ -13,8 +13,8 @@
             </thead>
             <tbody>
             <tr th:each="page : ${pages}">
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.title}"></a></td>
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.url}"></a></td>
+                <td><a th:href="@{'/page/' + ${page.url}}" th:text="${page.title}"></a></td>
+                <td><a th:href="@{'/page/' + ${page.url}}" th:text="${page.url}"></a></td>
             </tr>
             </tbody>
         </table>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{},~{})}" xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/html">
 
 <pagetitle><h1>Pages tagged <span th:utext="${tag}"></span></h1></pagetitle>
 
@@ -15,13 +16,13 @@
             <tbody>
 
             <tr th:each="page : ${pageList}">
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.title}"></a></td>
-                <td><a th:href="@{'/' + ${page.url}}" th:text="${page.url}"></a></td>
+                <td><a th:href="@{'/page/' + ${page.url}}" th:text="${page.title}"></a></td>
+                <td><a th:href="@{'/page/' + ${page.url}}" th:text="${page.url}"></a></td>
             </tr>
 
             </tbody>
         </table>
     </tag>
     <p th:unless="${pageList != null}">There are no pages tagged <span th:utext="${tag}"></span>.</p>
+
 </section>
-<sidebar></sidebar>

@@ -7,9 +7,9 @@ import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -22,20 +22,17 @@ import java.util.*;
  * Opens a specified .md file and uses a processor object to process into usable data
  */
 public class Page implements Comparable<Page> {
+
+    Logger logger = LoggerFactory.getLogger(Page.class);
+
     private Path path;
     private String url;
     private boolean isNew;
     private String content;
     private String html;
     private String body;
-    //  TODO: __html__ ... Not sure of the use so will add later
     private String title;
-    //  TODO: Not sure, but seems tags are one string seperated by ',' character
-    //private List<String> tags;
-    private String tags;
-
-    //  TODO: OrderedDict was used on the original, HashMap will be the stand in until it causes an issue
-    private HashMap<String, Object> meta;
+    private String tags;    // tags are stored as a string of characters seperated by only commas.
 
     public Page() {
     }
@@ -44,13 +41,16 @@ public class Page implements Comparable<Page> {
         this.path = path;
         this.url = url;
         this.isNew = false;
-        this.meta = new HashMap();
         this.load();
         this.render();
     }
 
     //  overloaded constructor will set isNew flag, really only used to match functionality with optional
     //  'new' parameter in Riki, kinda clunky...
+    /*  I could remove the if statement in this method, but I will keep it for readability and in case I ever need to be
+        explicit with the state of a page.
+    *   I don't think isNew is ever set to false, but pages are loaded every time so it shouldn't be necessary.
+    * */
     public Page(Path path, String url, boolean isNew) {
         this.path = path;
         this.url = url;
@@ -60,22 +60,18 @@ public class Page implements Comparable<Page> {
             this.render();
         }
     }
-    //  TODO: python __repr__ equivalent?
 
-    //  TODO: implement
     public void load() {
-        //  open file from this.path, r only, with encoding???
+        //  open file from this.path
         try {
             this.content = Files.readString(this.path);
         } catch (Exception ex) {
-            System.out.println("Page class, load method, issue loading file");
+            logger.error("There was an issue loading a file");
         }
-
     }
 
-    //  TODO: implement
     public void render() {
-        //  make processor object passing content instance variable
+        //  create processor object passing content instance variable
         PageProcessor processor = new PageProcessor(this.content);
         Object[] data = processor.process();
 
@@ -86,24 +82,9 @@ public class Page implements Comparable<Page> {
         this.setBody((String) data[1]);
         this.setHTML((String) data[0]);
 
-        System.out.println("HTML: " + this.html);
-
-        //  use processor.process() to set _html, body, and _meta instance varibles
-
     }
 
-    //  TODO: implement
     public void save(boolean update) {
-        //  Check that directory from this.path exists, if not make it
-        Path dir = this.path.getFileName();
-        if (!Files.exists(dir)) {
-            try {
-                Files.createDirectories(dir);
-            } catch (java.io.IOException ex) {
-                //  TODO: logging
-                System.out.println("Page class, save method: fucked up creating a dir");
-            }
-        }
 
         //  initialize string that will hold markdown data
         String saveData = "---\r\n";
@@ -120,52 +101,30 @@ public class Page implements Comparable<Page> {
         try {
             Files.write(this.path, Collections.singleton(saveData));
         } catch (java.io.IOException ex) {
-            System.out.println("\n\n\nSave method fuckup with writing file\n\n");
+            logger.error("There was an issue writing to a file.");
         }
 
         if (update) {
             this.load();
             this.render();
         }
-
-
-        //  open file at this.path, w only, write line by line from this._meta.items()??, append extra
-
-        //  if update, default true, this.load and this.render again...
-
-    }
-
-    public HashMap<String, Object> getMeta() {
-        return this.meta;
-    }
-
-    //  TODO: update when the return object is identified
-    public Object getItem(String name) {
-        return this.meta.get(name);
-    }
-
-    //  TODO: update when the return object is identified
-    public void setItem(String name, Object value) {
-        this.meta.put(name, value);
     }
 
     public String getHTML() {
-        System.out.println("This is getHTML: " + this.html);
         return this.html;
     }
 
-    public void setHTML(String value) {
-        this.html = value;
+    public void setHTML(String html) {
+        this.html = html;
     }
 
-    //  TODO: __html__ getter method?
 
     public String getUrl() {
         return this.url;
     }
 
-    public void setUrl(String value) {
-        this.url = value;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getTitle() {
@@ -175,46 +134,32 @@ public class Page implements Comparable<Page> {
         return this.url;
     }
 
-    public void setTitle(String value) {
-        this.title = value;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getBody() {
         return this.body;
     }
 
-    public void setBody(String value) {
-        this.body = value;
+    public void setBody(String body) {
+        this.body = body;
     }
 
-    //  return tags List, if it is not set return null
+    //  return tags List, if it is not set: return null
     public List<String> getTagsList() {
         String[] tagValues = this.tags.split(",");
         ArrayList<String> tagsList = new ArrayList<String>(List.of(tagValues));
         return tagsList;
     }
 
-
     public String getTags() {
         return this.tags;
     }
-    /*TODO remove?
-       public String getTags(){
-        String tagString = "";
-        for (String s : this.tags) {
-            tagString = tagString + s + ",";
-        }
-        if (tagString.endsWith(",")){
-            tagString = tagString.substring(0, tagString.length() - 1);
-        }
-        return tagString;
-    }*/
 
     //  set tags as String of tags seperated by ',' character
     public void setTags(String values) {
-
         this.tags = values;
-
     }
 
     public void setTags(List<String> values) {
@@ -242,7 +187,7 @@ public class Page implements Comparable<Page> {
          * The processor handles the processing of file content into metadata and markdown, as well as takes care
          * of the rendering. It is based on the same class from the Riki project
          */
-        // make markdown object? for processing
+
         //input is the text passed into the constructor
         private final String input;
         private String markdown;
@@ -259,19 +204,18 @@ public class Page implements Comparable<Page> {
          * The original project uses lists of functions for pre- and post-processing.
          * The java equivalent that I would use requires an interface and subclasses that overload the desired method
          * You make an array of the superclass type and create the desired objects for each entry.
-         * This sound reasonable as an extension of the functionality, but seeing as the original project only
+         * This sounds reasonable as an extension of the functionality, but seeing as the original project only
          * implemented one post processor and no pre-processors, I will just use a function defined in this class
          */
 
-        //  TODO: Riki also had a default parameter url_formatter set to none...
+        //  Riki also had a default parameter url_formatter set to none...
         private String wikiLinks(String text) {
             return "";
         }
 
         public PageProcessor(String text) {
 
-            //  TODO: initialize markdown object, this will use commonMark and will be saved into instance variables.
-
+            // These will be used to process the text
             List<Extension> extensions = Arrays.asList(YamlFrontMatterExtension.create(), TablesExtension.create());
             this.parser = Parser.builder()
                     .extensions(extensions)
@@ -303,19 +247,15 @@ public class Page implements Comparable<Page> {
             this.markdown = (this.input.split("\r\n\r\n", 2))[1];
         }
 
-        //  process meta is unecessary because the meta data is ordered
+        //  The process meta method is unnecessary because the metadata is ordered
 
-        //  content postprocessor
-        private void postProcess() {
-            //  TODO: implement; May be unnecessary
-            //  Post processor in og was used for making links from markdown, may have a tool in the CommonMark library
-        }
+        //  content postprocessor is unnecessary for now, the link creation function is already handled in the commonmark library
 
-        //  runs full set of processors and returns data...
-        //  OG returned multiple values that are immediately used for instance variables
-        //      so maybe return with array...
+        //private void postProcess() {}
 
-        //  TODO: determine necessity of seperate process method, we have many less methods in this class than the og
+        //  runs full set of processors and returns data.
+
+        // TODO: consider necessity of separate process method, we have many less methods in this class than the original
         private Object[] process() {
 
             this.splitRaw();
@@ -325,6 +265,7 @@ public class Page implements Comparable<Page> {
             return new Object[]{this.html, this.markdown, this.meta};
 
         }
+
 
     }
 }

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{},~{})}" xmlns:th="http://www.thymeleaf.org">
+<pagetitle><h1>
+    ERROR <span th:text=" ${errorCode}"></span>
+</h1></pagetitle>
+
+<section>
+
+    <p>
+        Something Went Wrong! <br><br>
+        <a th:href="@{/home}" class="btn btn-success">Return to Home Page</a>
+    </p>
+</section>

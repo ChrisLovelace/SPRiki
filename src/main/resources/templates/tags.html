@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{::sidebar})}" xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{},~{})}" xmlns:th="http://www.thymeleaf.org">
 
 <pagetitle><h1>Index by Tags</h1></pagetitle>
 
@@ -23,4 +23,3 @@
     </tags>
     <p th:unless="${tags != null}">There are no tags in use so far.</p>
 </section>
-<sidebar></sidebar>

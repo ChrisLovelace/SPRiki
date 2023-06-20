@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html th:replace="~{base :: layout (~{::pagetitle}, ~{::section},~{},~{})}" xmlns:th="http://www.thymeleaf.org"
+      xmlns="">
+<pagetitle>
+
+    <h1 th:if="${search.text == null}" >Search</h1>
+    <h1 th:if="${search.text != null}"  >Results for "<span th:text=" ${search.text}"></span>"</h1>
+
+</pagetitle>
+
+<section>
+    <div class="row">
+        <div class="span8 offset1">
+            <form method="POST" th:object="${search}" class="form-inline well">
+                <input type="text" id="term" name="term" th:field="*{text}" placeholder='Search for.. (regex accepted)' autocomplete="off">
+                <input type="checkbox" id="ignore-case" name="ignore-case" th:field="*{flag}">
+                <label for="ignore-case">Ignore Case</label>
+                <input type="submit" class="btn btn-success pull-right" value="Search!">
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${search.text != null}" >
+        <ul th:if="${results != null}" th:each="result : ${results}" >
+            <li><a th:href="@{'/page/' + ${result.url}}" th:text="${result.title}"></a></li>
+        </ul>
+
+        <p th:if="${#lists.isEmpty(results)}" >No results for your search.</p>
+    </div>
+</section>
+
+</html>

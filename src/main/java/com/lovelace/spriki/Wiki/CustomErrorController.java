@@ -19,7 +19,10 @@ public class CustomErrorController implements ErrorController {
     public String handleError(HttpServletRequest request, Model model) {
 
 
+
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+
+        logger.warn(status.toString());
 
         int code;
         if (status != null){
